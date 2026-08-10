@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🐱 Тренажёр: таблица + столбик</title>
+    <style>
+        /* ── reset & base ── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f7f3ee;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            margin: 0;
+        }
+        .app {
+            max-width: 580px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 40px 40px 32px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04);
+            padding: 28px 24px 32px;
+            transition: 0.2s;
+            border: 1px solid #ede8e2;
+        }
+
+        /* ── header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #3b2e26;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header h1 span {
+            font-size: 26px;
+        }
+        .header .cats {
+            font-size: 26px;
+            letter-spacing: 2px;
+            user-select: none;
+        }
+
+        /* ── stats ── */
+        .stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9f6f2;
+            border-radius: 60px;
+            padding: 8px 18px 8px 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            border: 1px solid #ede5dd;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #3b2e26;
+        }
+        .stat-item .num {
+            font-weight: 700;
+            font-size: 17px;
+            min-width: 22px;
+            text-align: center;
+        }
+        .stat-item .num.green {
+            color: #2b7a4b;
+        }
+        .stat-item .num.red {
+            color: #b13e3e;
+        }
+        .stat-item .num.gold {
+            color: #b8860b;
+        }
+        .stat-divider {
+            width: 1px;
+            height: 24px;
+            background: #ddd5cc;
+        }
+        .streak-badge {
+            background: #f0e3d8;
+            border-radius: 30px;
+            padding: 2px 14px 2px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b4f3a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .streak-badge .fire {
+            font-size: 18px;
+        }
+
+        /* ── difficulty ── */
+        .diff-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .diff-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 6px;
+            border: 2px solid #e3d8cf;
+            border-radius: 40px;
+            background: #fcfaf8;
+            font-weight: 600;
+            font-size: 14px;
+            color: #5f4b3a;
+            cursor: pointer;
+            transition: 0.15s;
+            text-align: center;
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .diff-btn:hover {
+            background: #f5eee8;
+            border-color: #cbb8aa;
+        }
+        .diff-btn.active {
+            background: #3b2e26;
+            border-color: #3b2e26;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 46, 38, 0.18);
+        }
+        .diff-btn .star {
+            font-size: 16px;
+        }
+
+        /* ── problem card ── */
+        .problem-card {
+            background: #fcfaf8;
+            border-radius: 28px;
+            padding: 28px 20px 22px;
+            border: 1px solid #ede5dd;
+            margin-bottom: 18px;
+            min-height: 170px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+        }
+        .problem-type {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a48d7a;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+            background: #f0e8e0;
+            padding: 2px 16px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        .problem-type .icon {
+            margin-right: 6px;
+        }
+        .problem-display {
+            font-size: 34px;
+            font-weight: 700;
+            color: #2a1f18;
+            text-align: center;
+            line-height: 1.3;
+            letter-spacing: 0.5px;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .problem-display .row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .problem-display .col-mult {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 30px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+            letter-spacing: 1px;
+            background: #f9f5f0;
+            padding: 12px 20px 10px;
+            border-radius: 16px;
+            min-width: 140px;
+        }
+        .problem-display .col-mult .top {
+            color: #2a1f18;
+        }
+        .problem-display .col-mult .mid {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #2a1f18;
+        }
+        .problem-display .col-mult .mid .sign {
+            font-size: 24px;
+            font-weight: 400;
+        }
+        .problem-display .col-mult .line {
+            width: 100%;
+            height: 3px;
+            background: #2a1f18;
+            border-radius: 2px;
+            margin: 4px 0 6px;
+        }
+        .problem-display .col-mult .bottom {
+            font-size: 30px;
+            color: #b8860b;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 100%;
+        }
+        .problem-display .col-mult .bottom .qmark {
+            color: #b8860b;
+            font-weight: 700;
+        }
+        .problem-display .division-display {
+            font-size: 34px;
+            font-weight: 700;
+            color: #2a1f18;
+            font-family: 'Courier New', monospace;
+            background: #f9f5f0;
+            padding: 14px 28px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .problem-display .division-display .div-sign {
+            color: #8a7a6a;
+            font-weight: 400;
+        }
+        .problem-display .division-display .qmark {
+            color: #b8860b;
+        }
+
+        /* ── input area ── */
+        .input-area {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .input-area input {
+            flex: 2;
+            min-width: 140px;
+            padding: 14px 18px;
+            border: 2px solid #e3d8cf;
+            border-radius: 60px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2a1f18;
+            background: #fcfaf8;
+            outline: none;
+            transition: 0.15s;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+        .input-area input:focus {
+            border-color: #b8860b;
+            box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.12);
+        }
+        .input-area input::placeholder {
+            color: #c5b8ab;
+            font-weight: 400;
+            font-size: 16px;
+        }
+        .input-area input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .input-area .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 60px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-check {
+            background: #2b7a4b;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(43, 122, 75, 0.25);
+        }
+        .btn-check:hover:not(:disabled) {
+            background: #1f6a3d;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(43, 122, 75, 0.3);
+        }
+        .btn-check:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-next {
+            background: #3b2e26;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(59, 46, 38, 0.2);
+        }
+        .btn-next:hover:not(:disabled) {
+            background: #2d221c;
+            transform: translateY(-1px);
+        }
+        .btn-next:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── feedback ── */
+        .feedback {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 40px;
+            padding: 6px 12px;
+            margin-bottom: 6px;
+            transition: 0.2s;
+        }
+        .feedback.correct {
+            color: #1f6a3d;
+            background: #e8f5ee;
+        }
+        .feedback.wrong {
+            color: #b13e3e;
+            background: #fdeaea;
+        }
+        .feedback .cat {
+            font-size: 28px;
+        }
+        .feedback .detail {
+            font-weight: 400;
+            font-size: 16px;
+            opacity: 0.8;
+            margin-left: 4px;
+        }
+
+        /* ── footer ── */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            font-size: 13px;
+            color: #b5a697;
+            border-top: 1px solid #ede5dd;
+            padding-top: 16px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .footer .reset-btn {
+            background: none;
+            border: none;
+            color: #b5a697;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline dotted;
+            padding: 4px 8px;
+            border-radius: 20px;
+            transition: 0.1s;
+        }
+        .footer .reset-btn:hover {
+            color: #6b4f3a;
+            background: #f0e8e0;
+        }
+        .footer .progress-text {
+            font-weight: 500;
+        }
+
+        /* ── responsive ── */
+        @media (max-width: 480px) {
+            .app {
+                padding: 18px 14px 22px;
+                border-radius: 28px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .header .cats {
+                font-size: 20px;
+            }
+            .stats {
+                padding: 6px 12px;
+                font-size: 13px;
+                gap: 4px 8px;
+            }
+            .stat-item {
+                font-size: 13px;
+            }
+            .problem-display {
+                font-size: 26px;
+            }
+            .problem-display .col-mult {
+                font-size: 24px;
+                padding: 10px 14px;
+                min-width: 100px;
+            }
+            .problem-display .division-display {
+                font-size: 26px;
+                padding: 10px 16px;
+            }
+            .input-area input {
+                font-size: 18px;
+                padding: 12px 14px;
+                min-width: 100px;
+            }
+            .input-area .btn {
+                font-size: 15px;
+                padding: 12px 14px;
+                min-width: 80px;
+            }
+            .diff-btn {
+                font-size: 12px;
+                padding: 6px 4px;
+                min-width: 60px;
+            }
+            .feedback {
+                font-size: 15px;
+                min-height: 40px;
+            }
+        }
+        @media (max-width: 380px) {
+            .problem-display .col-mult {
+                font-size: 20px;
+                padding: 8px 10px;
+                min-width: 80px;
+            }
+            .problem-display .division-display {
+                font-size: 22px;
+                padding: 8px 12px;
+            }
+            .input-area {
+                flex-direction: column;
+            }
+            .input-area input {
+                width: 100%;
+            }
+            .input-area .btn {
+                width: 100%;
+            }
+        }
+
+        /* ── utility ── */
+        .hidden {
+            display: none !important;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mt-4 {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app" id="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span>📐</span> Тренажёр
+            </h1>
+            <div class="cats">🐱 🐾 🐈</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats" id="statsBar">
+            <div class="stat-item">
+                🎯 <span class="num" id="totalCount">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                ✅ <span class="num green" id="correctCount">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                ❌ <span class="num red" id="wrongCount">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="streak-badge">
+                <span class="fire">🔥</span> <span id="streakCount">0</span>
+            </div>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="diff-bar" id="diffBar">
+            <button class="diff-btn active" data-diff="easy">
+                <span class="star">⭐</span> Простой
+            </button>
+            <button class="diff-btn" data-diff="medium">
+                <span class="star">⭐⭐</span> Средний
+            </button>
+            <button class="diff-btn" data-diff="hard">
+                <span class="star">⭐⭐⭐</span> Сложный
+            </button>
+        </div>
+
+        <!-- Problem -->
+        <div class="problem-card" id="problemCard">
+            <div class="problem-type" id="problemType">
+                <span class="icon">📋</span> Таблица умножения
+            </div>
+            <div class="problem-display" id="problemDisplay">
+                <!-- динамически -->
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+            <input type="text" id="answerInput" placeholder="Введи ответ" autocomplete="off" inputmode="numeric" />
+            <button class="btn btn-check" id="checkBtn">✅ Проверить</button>
+            <button class="btn btn-next" id="nextBtn" disabled>➡️ Дальше</button>
+        </div>
+
+        <!-- Feedback -->
+        <div class="feedback" id="feedback">
+            <span class="cat">🐱</span> Введи ответ и нажми «Проверить»
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="progress-text" id="progressText">Задание #1</span>
+            <button class="reset-btn" id="resetBtn">🔄 Начать заново</button>
+        </div>
+    </div>
+
+    <script>
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  СОСТОЯНИЕ
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const state = {
+            difficulty: 'easy', // 'easy' | 'medium' | 'hard'
+            total: 0,
+            correct: 0,
+            wrong: 0,
+            streak: 0,
+            maxStreak: 0,
+            currentProblem: null, // { type, question, answer, displayFn }
+            answered: false,
+            problemNumber: 0,
+            nextType: null, // 'table' | 'column' — для чередования
+        };
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  ГЕНЕРАЦИЯ ЗАДАЧ
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        // --- случайное целое ---
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // --- Таблица умножения ---
+        function generateTable(diff) {
+            let a, b;
+            const d = diff;
+            if (d === 'easy') {
+                a = rand(2, 9);
+                b = rand(2, 9);
+            } else if (d === 'medium') {
+                // 11..19 × 2..9  или  2..9 × 11..19
+                if (Math.random() < 0.5) {
+                    a = rand(11, 19);
+                    b = rand(2, 9);
+                } else {
+                    a = rand(2, 9);
+                    b = rand(11, 19);
+                }
+            } else { // hard
+                a = rand(11, 19);
+                b = rand(11, 19);
+            }
+            const answer = a * b;
+            const display = `${a} × ${b} = ?`;
+            return {
+                type: 'table',
+                label: 'Таблица умножения',
+                icon: '✖️',
+                a,
+                b,
+                answer,
+                display,
+                // для рендера
+                render() {
+                    return `<div class="row">${a} × ${b} = <span style="color:#b8860b;font-weight:700;">?</span></div>`;
+                }
+            };
+        }
+
+        // --- Столбик: умножение ---
+        function generateColumnMult(diff) {
+            let a, b;
+            const d = diff;
+            if (d === 'easy') {
+                a = rand(10, 99);
+                b = rand(2, 9);
+            } else if (d === 'medium') {
+                if (Math.random() < 0.5) {
+                    a = rand(100, 999);
+                    b = rand(2, 9);
+                } else {
+                    a = rand(10, 99);
+                    b = rand(10, 99);
+                }
+            } else { // hard
+                a = rand(100, 999);
+                b = rand(10, 99);
+            }
+            const answer = a * b;
+            return {
+                type: 'column-mult',
+                label: 'Умножение в столбик',
+                icon: '✖️',
+                a,
+                b,
+                answer,
+                render() {
+                    return `
+                        <div class="col-mult">
+                            <div class="top">${a}</div>
+                            <div class="mid"><span class="sign">×</span> ${b}</div>
+                            <div class="line"></div>
+                            <div class="bottom"><span class="qmark">?</span></div>
+                        </div>
+                    `;
+                }
+            };
+        }
+
+        // --- Столбик: деление (без остатка) ---
+        function generateColumnDiv(diff) {
+            let divisor, quotient, dividend;
+            const d = diff;
+            // генерируем так: выбираем divisor и quotient, считаем dividend
+            if (d === 'easy') {
+                divisor = rand(2, 9);
+                quotient = rand(2, 99);
+                // чтобы dividend был 2-3 значный
+                while (quotient * divisor < 10 || quotient * divisor > 999) {
+                    divisor = rand(2, 9);
+                    quotient = rand(2, 99);
+                }
+            } else if (d === 'medium') {
+                // divisor: 2..9 или 10..99
+                if (Math.random() < 0.5) {
+                    divisor = rand(2, 9);
+                    quotient = rand(10, 999);
+                } else {
+                    divisor = rand(10, 99);
+                    quotient = rand(2, 99);
+                }
+                // ограничим dividend
+                let prod = divisor * quotient;
+                while (prod < 100 || prod > 9999) {
+                    if (Math.random() < 0.5) {
+                        divisor = rand(2, 9);
+                        quotient = rand(10, 999);
+                    } else {
+                        divisor = rand(10, 99);
+                        quotient = rand(2, 99);
+                    }
+                    prod = divisor * quotient;
+                }
+            } else { // hard
+                divisor = rand(10, 99);
+                quotient = rand(10, 999);
+                let prod = divisor * quotient;
+                while (prod < 100 || prod > 99999) {
+                    divisor = rand(10, 99);
+                    quotient = rand(10, 999);
+                    prod = divisor * quotient;
+                }
+            }
+            dividend = divisor * quotient;
+            const answer = quotient;
+            return {
+                type: 'column-div',
+                label: 'Деление в столбик',
+                icon: '➗',
+                dividend,
+                divisor,
+                answer,
+                render() {
+                    return `
+                        <div class="division-display">
+                            ${dividend} <span class="div-sign">÷</span> ${divisor} <span class="div-sign">=</span> <span class="qmark">?</span>
+                        </div>
+                    `;
+                }
+            };
+        }
+
+        // --- Главная генерация ---
+        function generateProblem(diff, forceType) {
+            // forceType: 'table' | 'column' | null (auto)
+            let type;
+            if (forceType) {
+                type = forceType;
+            } else {
+                // чередуем: если нет nextType, начинаем с table
+                if (state.nextType === null) {
+                    type = Math.random() < 0.5 ? 'table' : 'column';
+                } else {
+                    type = state.nextType;
+                }
+            }
+
+            let problem;
+            if (type === 'table') {
+                problem = generateTable(diff);
+                state.nextType = 'column';
+            } else {
+                // column: чередуем умножение и деление
+                if (Math.random() < 0.5) {
+                    problem = generateColumnMult(diff);
+                } else {
+                    problem = generateColumnDiv(diff);
+                }
+                state.nextType = 'table';
+            }
+            return problem;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  UI ОБНОВЛЕНИЕ
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        const $ = (id) => document.getElementById(id);
+        const displayEl = $('problemDisplay');
+        const typeEl = $('problemType');
+        const answerInput = $('answerInput');
+        const checkBtn = $('checkBtn');
+        const nextBtn = $('nextBtn');
+        const feedbackEl = $('feedback');
+        const totalEl = $('totalCount');
+        const correctEl = $('correctCount');
+        const wrongEl = $('wrongCount');
+        const streakEl = $('streakCount');
+        const progressText = $('progressText');
+        const resetBtn = $('resetBtn');
+        const diffBtns = document.querySelectorAll('.diff-btn');
+
+        function renderProblem(problem) {
+            if (!problem) return;
+            state.currentProblem = problem;
+            // тип
+            const iconMap = {
+                'table': '✖️',
+                'column-mult': '✖️',
+                'column-div': '➗'
+            };
+            const labelMap = {
+                'table': 'Таблица умножения',
+                'column-mult': 'Умножение в столбик',
+                'column-div': 'Деление в столбик'
+            };
+            const icon = iconMap[problem.type] || '📐';
+            const label = labelMap[problem.type] || 'Задание';
+            typeEl.innerHTML = `<span class="icon">${icon}</span> ${label}`;
+            // содержимое
+            displayEl.innerHTML = problem.render();
+            // сброс
+            answerInput.value = '';
+            answerInput.disabled = false;
+            answerInput.focus();
+            checkBtn.disabled = false;
+            nextBtn.disabled = true;
+            state.answered = false;
+            feedbackEl.className = 'feedback';
+            feedbackEl.innerHTML = `<span class="cat">🐱</span> Введи ответ и нажми «Проверить»`;
+            // обновим счётчик
+            progressText.textContent = `Задание #${state.problemNumber}`;
+            updateStats();
+        }
+
+        function updateStats() {
+            totalEl.textContent = state.total;
+            correctEl.textContent = state.correct;
+            wrongEl.textContent = state.wrong;
+            streakEl.textContent = state.streak;
+        }
+
+        function showFeedback(correct, problem) {
+            state.answered = true;
+            answerInput.disabled = true;
+            checkBtn.disabled = true;
+            nextBtn.disabled = false;
+            nextBtn.focus();
+
+            const catEmojis = {
+                correct: ['😸', '🐱', '🐈', '😺', '🙀', '😻'],
+                wrong: ['😿', '😾', '🐈⬛', '🙀']
+            };
+            const cat = correct ?
+                catEmojis.correct[rand(0, catEmojis.correct.length - 1)] :
+                catEmojis.wrong[rand(0, catEmojis.wrong.length - 1)];
+
+            if (correct) {
+                feedbackEl.className = 'feedback correct';
+                const msgs = ['Отлично!', 'Верно!', 'Так держать!', 'Идеально!', 'Красава!', 'Молодец!'];
+                feedbackEl.innerHTML =
+                    `<span class="cat">${cat}</span> ${msgs[rand(0, msgs.length-1)]} <span class="detail">✅</span>`;
+            } else {
+                feedbackEl.className = 'feedback wrong';
+                const msgs = ['Ой!', 'Неверно', 'Попробуй ещё', 'Внимательнее'];
+                feedbackEl.innerHTML =
+                    `<span class="cat">${cat}</span> ${msgs[rand(0, msgs.length-1)]} <span class="detail">👉 ${problem.answer}</span>`;
+            }
+            // обновим stats
+            updateStats();
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  ЛОГИКА
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function checkAnswer() {
+            if (state.answered) return;
+            const input = answerInput.value.trim();
+            if (input === '') {
+                feedbackEl.className = 'feedback';
+                feedbackEl.innerHTML = `<span class="cat">🐱</span> Напиши ответ!`;
+                return;
+            }
+            const userAnswer = Number(input);
+            if (isNaN(userAnswer)) {
+                feedbackEl.className = 'feedback';
+                feedbackEl.innerHTML = `<span class="cat">🐱</span> Введи число!`;
+                return;
+            }
+            const problem = state.currentProblem;
+            if (!problem) return;
+
+            const correct = userAnswer === problem.answer;
+            state.total++;
+            if (correct) {
+                state.correct++;
+                state.streak++;
+                if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+            } else {
+                state.wrong++;
+                state.streak = 0;
+            }
+            showFeedback(correct, problem);
+        }
+
+        function nextProblem() {
+            if (!state.answered) return;
+            state.problemNumber++;
+            const diff = state.difficulty;
+            // forceType = null — авто-чередование через state.nextType
+            const problem = generateProblem(diff, null);
+            renderProblem(problem);
+            // фокус
+            setTimeout(() => answerInput.focus(), 100);
+        }
+
+        function resetGame() {
+            state.total = 0;
+            state.correct = 0;
+            state.wrong = 0;
+            state.streak = 0;
+            state.maxStreak = 0;
+            state.problemNumber = 1;
+            state.nextType = null;
+            state.answered = false;
+            const diff = state.difficulty;
+            const problem = generateProblem(diff, null);
+            renderProblem(problem);
+            updateStats();
+            feedbackEl.className = 'feedback';
+            feedbackEl.innerHTML = `<span class="cat">🐱</span> Новая попытка! Введи ответ.`;
+            answerInput.focus();
+        }
+
+        function setDifficulty(diff) {
+            state.difficulty = diff;
+            diffBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.diff === diff);
+            });
+            // сбрасываем прогресс при смене уровня (по желанию)
+            // но сохраняем статистику? лучше сбросить для честности
+            // по-хорошему — спросим, но сделаем сброс с подтверждением?
+            // сделаем мягкий сброс: обнуляем только текущую сессию
+            resetGame();
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  СОБЫТИЯ
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        checkBtn.addEventListener('click', checkAnswer);
+
+        answerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!state.answered) {
+                    checkAnswer();
+                } else {
+                    nextProblem();
+                }
+            }
+        });
+
+        nextBtn.addEventListener('click', nextProblem);
+
+        resetBtn.addEventListener('click', resetGame);
+
+        diffBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const diff = btn.dataset.diff;
+                if (diff === state.difficulty) return;
+                setDifficulty(diff);
+            });
+        });
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  СТАРТ
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        // инициализация
+        state.problemNumber = 1;
+        state.nextType = null;
+        const initialDiff = state.difficulty;
+        const initialProblem = generateProblem(initialDiff, null);
+        renderProblem(initialProblem);
+        updateStats();
+        answerInput.focus();
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  ДОПОЛНИТЕЛЬНО: авто-фокус при клике на карточку
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        document.getElementById('problemCard').addEventListener('click', () => {
+            if (!state.answered) answerInput.focus();
+        });
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  ДЛЯ УДОБСТВА: подсказка по наведению на ответ
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        console.log('🐱 Тренажёр запущен! Удачи!');
+    </script>
+
+</body>
+</html>
